@@ -1,0 +1,271 @@
+{
+    "$schema": "https://vega.github.io/schema/vega/v5.json",
+    "description": "A modified version of the tree layout to display square nodes with additional info.",
+    "width": 600,
+    "height": 800,
+    "padding": 5,
+    "background": "#E6F4EA",
+    "data": [
+        {
+            "name": "table",
+            "values": [
+                {
+                    "id": "node_1",
+                    "parent": "",
+                    "pv": 10,
+                    "next_nodes": [
+                        "node_2",
+                        "node_3"
+                    ]
+                },
+                {
+                    "id": "node_2",
+                    "parent": "node_1",
+                    "pv": 8,
+                    "next_nodes": [
+                        "node_4",
+                        "node_5"
+                    ]
+                },
+                {
+                    "id": "node_3",
+                    "parent": "node_1",
+                    "pv": 2,
+                    "next_nodes": []
+                },
+                {
+                    "id": "node_4",
+                    "parent": "node_2",
+                    "pv": 5,
+                    "next_nodes": []
+                },
+                {
+                    "id": "node_5",
+                    "parent": "node_2",
+                    "pv": 3,
+                    "next_nodes": []
+                }
+            ],
+            "transform": [
+                {
+                    "type": "stratify",
+                    "key": "id",
+                    "parentKey": "parent"
+                },
+                {
+                    "type": "tree",
+                    "size": [
+                        {
+                            "signal": "height"
+                        },
+                        {
+                            "signal": "width - 100"
+                        }
+                    ],
+                    "separation": true,
+                    "as": [
+                        "y",
+                        "x",
+                        "depth",
+                        "children"
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "links",
+            "source": "table",
+            "transform": [
+                {
+                    "type": "treelinks"
+                },
+                {
+                    "type": "linkpath",
+                    "orient": "horizontal",
+                    "shape": "diagonal"
+                },
+                {
+                    "type": "lookup",
+                    "from": "table",
+                    "key": "id",
+                    "fields": [
+                        "source.id",
+                        "target.id"
+                    ],
+                    "as": [
+                        "sourceNode",
+                        "targetNode"
+                    ]
+                }
+            ]
+        }
+    ],
+    "scales": [
+        {
+            "name": "color",
+            "type": "ordinal",
+            "range": {
+                "scheme": "tableau10"
+            },
+            "domain": {
+                "data": "table",
+                "field": "id"
+            }
+        }
+    ],
+    "marks": [
+        {
+            "type": "path",
+            "from": {
+                "data": "links"
+            },
+            "encode": {
+                "update": {
+                    "path": {
+                        "field": "path"
+                    },
+                    "stroke": {
+                        "value": "#ccc"
+                    }
+                }
+            }
+        },
+        {
+            "type": "rect",
+            "from": {
+                "data": "table"
+            },
+            "encode": {
+                "enter": {
+                    "width": {
+                        "value": 100
+                    },
+                    "height": {
+                        "value": 60
+                    },
+                    "stroke": {
+                        "value": "#000"
+                    },
+                    "strokeWidth": {
+                        "value": 2
+                    }
+                },
+                "update": {
+                    "x": {
+                        "field": "x",
+                        "offset": -50
+                    },
+                    "y": {
+                        "field": "y",
+                        "offset": -30
+                    },
+                    "fill": {
+                        "scale": "color",
+                        "field": "id"
+                    }
+                }
+            }
+        },
+        {
+            "type": "text",
+            "from": {
+                "data": "table"
+            },
+            "encode": {
+                "enter": {
+                    "fontSize": {
+                        "value": 10
+                    },
+                    "baseline": {
+                        "value": "top"
+                    }
+                },
+                "update": {
+                    "x": {
+                        "field": "x"
+                    },
+                    "y": {
+                        "field": "y",
+                        "offset": -15
+                    },
+                    "text": {
+                        "signal": "'ノードID: ' + datum.id"
+                    },
+                    "align": {
+                        "value": "center"
+                    },
+                    "fill": {
+                        "value": "white"
+                    }
+                }
+            }
+        },
+        {
+            "type": "text",
+            "from": {
+                "data": "table"
+            },
+            "encode": {
+                "enter": {
+                    "fontSize": {
+                        "value": 9
+                    },
+                    "baseline": {
+                        "value": "bottom"
+                    }
+                },
+                "update": {
+                    "x": {
+                        "field": "x"
+                    },
+                    "y": {
+                        "field": "y",
+                        "offset": 15
+                    },
+                    "text": {
+                        "signal": "'Page View: ' + datum.pv"
+                    },
+                    "align": {
+                        "value": "center"
+                    },
+                    "fill": {
+                        "value": "white"
+                    }
+                }
+            }
+        },
+        {
+            "type": "text",
+            "from": {
+                "data": "links"
+            },
+            "encode": {
+                "enter": {
+                    "fontSize": {
+                        "value": 9
+                    },
+                    "baseline": {
+                        "value": "middle"
+                    }
+                },
+                "update": {
+                    "x": {
+                        "signal": "(datum.source.x + datum.target.x) / 2"
+                    },
+                    "y": {
+                        "signal": "(datum.source.y + datum.target.y) / 2"
+                    },
+                    "text": {
+                        "signal": "format((datum.targetNode.pv / datum.sourceNode.pv) * 100, '.1f') + '%'"
+                    },
+                    "align": {
+                        "value": "center"
+                    },
+                    "fill": {
+                        "value": "black"
+                    }
+                }
+            }
+        }
+    ]
+}
